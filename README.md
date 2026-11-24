@@ -46,6 +46,6 @@ Result: I created two regional OUs, Europe and USA. Each has separate OUs for de
 
 | Problem | Cause | Fix |
 |---|---|---|
-| I created an OU with the wrong name and couldn't delete it | New OUs are protected from accidental deletion by default | Turned on View > Advanced Features, opened the OU's Properties > Object tab, unticked "Protect object from accidental deletion", then deleted it. I turned Advanced Features off again afterwards |
+| I created an OU with the wrong name and couldn't delete it | New OUs are protected from accidental deletion by default | Turned on View > Advanced Features, opened the OU's Properties > Object tab, unticked "Protect object from accidental deletion", then deleted it. Kept this setting enabled by default to all the OUs that i wanted to keep.
 
 

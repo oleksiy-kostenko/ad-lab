@@ -40,7 +40,8 @@ Let's start this off with a basic setup of the active directory. Next i configur
 <img width="1028" height="735" alt="ad-before png" src="https://github.com/user-attachments/assets/7d73d8df-f18d-4161-9c05-a2098c277d94" />
 **After:** regional OUs for Europe and USA, each with desktops, laptops and seven departments.
 Result: I created two regional OUs, Europe and USA. Each has separate OUs for desktops, laptops, servers and users, and the users are split into seven departments. This lets me apply policies to a whole region, one department, or only the laptops.
-<img width="1060" height="796" alt="AD-after png" src="https://github.com/user-attachments/assets/2307220a-6376-4da1-a54f-3a6238b20291" />
+<img width="1038" height="771" alt="ad-AFTER png (2)" src="https://github.com/user-attachments/assets/dab3da73-def5-4b08-9da9-a6320ed3ab1e" />
+
 
 **Troubleshooting:**
 

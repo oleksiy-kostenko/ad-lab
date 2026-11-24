@@ -28,3 +28,7 @@ Each section follows the same order: **what I did, why, the result, and what I h
 
 
 <img width="1031" height="767" alt="{5D0CBCF3-54D3-4297-84C4-8CFD52194556}" src="https://github.com/user-attachments/assets/a97c8dc9-8e6e-43c4-8dbc-ceb76b2b386b" />
+
+promoting domain controler...
+
+<img width="1034" height="767" alt="{FE0F2615-614B-4720-897D-5D41937CC031}" src="https://github.com/user-attachments/assets/42a88f89-5618-4775-901b-253554a42d97" />

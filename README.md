@@ -42,6 +42,10 @@ Lets start this off with a basic setup of the active directory. Next i configure
 Result: I created two regional OUs, Europe and USA. Each has separate OUs for desktops, laptops and users, and the users are split into seven departments. This lets me apply policies to a whole region, one department, or only the laptops.
 <img width="1043" height="784" alt="ad-after png" src="https://github.com/user-attachments/assets/dbd10029-f2c1-4e77-988a-0fcbf70d96ee" />
 
+**Troubleshooting:**
 
+| Problem | Cause | Fix |
+|---|---|---|
+| I created an OU with the wrong name and couldn't delete it | New OUs are protected from accidental deletion by default | Turned on View > Advanced Features, opened the OU's Properties > Object tab, unticked "Protect object from accidental deletion", then deleted it. I turned Advanced Features off again afterwards |
 
 

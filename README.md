@@ -31,4 +31,4 @@ Each section follows the same order: **what I did, why, the result, and what I h
 
 promoting domain controler...
 
-<img width="1034" height="767" alt="{FE0F2615-614B-4720-897D-5D41937CC031}" src="https://github.com/user-attachments/assets/42a88f89-5618-4775-901b-253554a42d97" />
+<img width="1030" height="759" alt="{0BB9ABE1-FDCB-479C-9EB3-D3641CF9229D}" src="https://github.com/user-attachments/assets/b43e978c-3bf1-4e81-a6ca-06d0831a83a3" />

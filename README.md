@@ -34,3 +34,5 @@ promoting domain controler...
 <img width="1030" height="759" alt="{0BB9ABE1-FDCB-479C-9EB3-D3641CF9229D}" src="https://github.com/user-attachments/assets/b43e978c-3bf1-4e81-a6ca-06d0831a83a3" />
 Now when i log into the server it should the domain name /adminstrator which it does. 
 This concludes the basic ground work for the windows server for this Active Directory.
+
+Lets start this off with a basic setup of the active directory. Next i configured the respective departments, locations and Organizations units. In this project, they are named step 2: Basic AD setup.

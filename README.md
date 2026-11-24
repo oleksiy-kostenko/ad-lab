@@ -36,3 +36,6 @@ Now when i log into the server it should the domain name /adminstrator which it 
 This concludes the basic ground work for the windows server for this Active Directory.
 
 Lets start this off with a basic setup of the active directory. Next i configured the respective departments, locations and Organizations units. In this project, they are named step 2: Basic AD setup.
+
+<img width="1028" height="735" alt="ad-before png" src="https://github.com/user-attachments/assets/7d73d8df-f18d-4161-9c05-a2098c277d94" />
+

@@ -1,4 +1,4 @@
-# ad-lab
+# ad-lab By Oleksiy Kostenko (Junior IT helpdesk L1)
 Active Directory home lab on Windows Server 2025: users, groups, shared folders, Group Policy and documented troubleshooting cases.
 
 # Active Directory Home Lab

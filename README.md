@@ -24,4 +24,4 @@ Each section follows the same order: **what I did, why, the result, and what I h
 | Name didn't change | (write what you had done wrong) | Renamed it again and restarted |
 
 
-<img width="1920" height="1032" alt="{00F85E1E-2B9F-468C-BF16-45710EF7C174}" src="https://github.com/user-attachments/assets/cc9512b6-a8e3-46fb-bff6-65a1e107dab7" />
+<img width="1019" height="717" alt="{F5C43E50-C62A-41B1-9B6A-246D01BBC4C2}" src="https://github.com/user-attachments/assets/920431b7-f8ec-4e66-9f70-b8420df68911" />

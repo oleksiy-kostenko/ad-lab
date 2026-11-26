@@ -274,11 +274,44 @@ Permissions on Common
 **Result:** On "Project", the "Inherited from" column showed "None" after I disabled inheritance, and Everyone was no longer on the list. I then added GG-Operations-USA. SYSTEM and the administrator entries are still there.
 
 <img width="997" height="700" alt="added Support as the group that will be working with this folder" src="https://github.com/user-attachments/assets/36cbd6c8-cab8-4f14-a3f4-00f5c21a7d31" />
-<img width="909" height="617" alt="only the Operations group has access to the project folder now" src="https://github.com/user-attachments/assets/a2082521-ac57-4453-8846-8cde027a2e89" />
-
-
 
  Final permissions on Project
+<img width="909" height="617" alt="only the Operations group has access to the project folder now" src="https://github.com/user-attachments/assets/a2082521-ac57-4453-8846-8cde027a2e89" />
+
+**Comment:** I'll be honest: inheritance and shares are a weak spot of mine, so I had to go through guides and documentation to set this up properly. It's still something I need to actively work on and improve.
+
+
+## 10. Explicit deny
+
+**What I did:** I made a folder called "Project2", shared it, and set up its permissions. Then I tried out "explicit deny" on one group, GG-Sales-USA.
+
+**Why:** I wanted to learn how to stop one group from reading a folder, while Everyone is still allowed on it.
+
+**First, I shared the folder.** In the share permissions, I gave Everyone Full Control. I can still limit what people do with the Security tab (NTFS).
+
+<img width="1010" height="708" alt="SettinupShareProject2" src="https://github.com/user-attachments/assets/a60e3e4d-4767-4caa-8916-544e15e545ac" />
+
+**Next, I added the group GG-Sales-USA.** At first, I let them read.
+
+<img width="892" height="633" alt="The child folder inherited from Project2 the permissions" src="https://github.com/user-attachments/assets/dcf174f3-17f5-4374-bffb-d4fe5ca34f9d" />
+
+**Then I changed it to Deny.** I ticked the Deny box next to Read. This is called an explicit deny, because I chose to block it myself.
+
+<img width="719" height="691" alt="Adding groupor user who we want to deny access to the folder" src="https://github.com/user-attachments/assets/1522c189-d17e-4fcd-a87a-945252f47922" />
+
+**Everyone is still allowed.** People in GG-Sales-USA are also part of "Everyone", which can read and write. But on this folder, the Deny on Read wins over the Allow.
+
+<img width="497" height="658" alt="denied" src="https://github.com/user-attachments/assets/3ba35719-8fb0-4f38-bf47-c2e67af3791b" />
+
+**What I learned:** There are two kinds of deny. An **explicit deny** is when I tick Deny myself. An **implicit deny** is when nobody gave you access, so you can't get in.
+
+<img width="509" height="653" alt="everyone else is not affected" src="https://github.com/user-attachments/assets/eaa82a57-ba62-4f8a-802b-d5a35db59d0e" />
+
+
+
+
+
+
 
 
 

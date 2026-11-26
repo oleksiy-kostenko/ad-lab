@@ -20,9 +20,7 @@ I like learning by doing, so I built this lab to practise what a helpdesk deals 
 ### Also working on
 
 - **Microsoft 365|Entra ID lab:** a small lab to practise administration.
-- **Service desk simulator:** I'm practising with realistic user tickets, like the ones I could face on the job. This matters to me because I don't have IT work experience yet. It lets me practise troubleshooting, talking to users and documenting my work before my first day. My goal is around 200 tickets over 30–50 hours, with the harder ones documented from start to finish. It's practice, not real work experience, but I want to start my first job as prepared and confident as I can.
-
-If you took time from your day to read my CV and open this project, thank you. Getting into IT hasn't been easy, and some things take me a few tries, but I don't give up. Building a career in this field is my goal, and I'm serious about it. If you give me a chance, even a small one, I'll show up, work relentlessly, dedicate myself to improving every day, without excuses, and do everything I can to exceed your expectations. Thanks again, and enjoy exploring my lab!
+- **Service desk simulator:** I'm practising troubleshooting, talking to users and documenting realistic tickets. It's practice, not real work experience, but it matters because I haven't worked in IT yet. My goal is around 200 tickets over 30–50 hours, with the harder ones documented from start to finish.
   
 **Jump to:** [Proof it works](#proof-it-works) · [Problems I solved](#problems-i-solved) · [How I built it](#how-i-built-it) · [What's next](#whats-next)
 
@@ -411,4 +409,5 @@ This lab is a work in progress too. In it, I want to:
 - Connect the lab to Microsoft Entra ID and try remote access over a VPN
 - Write PowerShell scripts like these myself
 
+If you took time from your day to read my CV and open this project, thank you. Getting into IT hasn't been easy, and some things take me a few tries, but I don't give up. Building a career in this field is my goal, and I'm serious about it. If you give me a chance, even a small one, I'll show up, work relentlessly, dedicate myself to improving every day, without excuses, and do everything I can to exceed your expectations. Thanks again, and enjoy exploring my lab!
 **Thanks for reading!** I'm still learning, and I'll keep adding to this lab.

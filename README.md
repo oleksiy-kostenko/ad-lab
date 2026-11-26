@@ -1,319 +1,413 @@
-# ad-lab By Oleksiy Kostenko (Junior IT helpdesk L1)
-Active Directory home lab on Windows Server 2025: users, groups, shared folders, Group Policy and documented troubleshooting cases.
-
 # Active Directory Home Lab
 
-Active Directory home lab on Windows Server 2025: users, groups, shared folders, Group Policy and documented troubleshooting cases.
+### CompTIA A+ · Aspiring IT Helpdesk / Service Desk (L1)
 
-Each section follows the same order: **what I did, why, the result, and what I had to troubleshoot.**
+Hi, I'm **Oleksiy Kostenko**. After several years in hospitality, where I learned to stay calm and help people, I'm moving into IT.
 
-## 1. Server setup
+- **Looking for:** my first IT Helpdesk / Service Desk (L1) job in the Porto area, Portugal
+- **Certification:** CompTIA A+
+- **Languages:** Portuguese, English and Russian (native level)
 
-**What I did:** Named the server DC01, set the correct time zone and gave it a static IP.
+I like learning by doing, so I built this lab to practise what a helpdesk deals with. I tested key parts as different users, and wrote down what broke and how I fixed it.
+(documented)
+### Skills
 
-**Why:** Clients use a domain controller for DNS and sign-in, so its address must not change. The clock matters because Kerberos rejects sign-ins when the time is too far off.
+- **Practised in this lab:** Active Directory · Group Policy · File permissions · DNS troubleshooting · Windows 11 and Server 2025
+- **A+ knowledge:** TCP/IP and DHCP · VPN · Remote Desktop · Hardware and printers
+- **Currently learning:** Microsoft 365 admin · Entra ID basics
 
-**Result:** `ipconfig /all` shows the name DC01, DHCP disabled and the static address.
+### Also working on
 
-**Troubleshooting:**
+- **Microsoft 365|Entra ID lab:** a small lab to practise administration.
+- **Service desk simulator:** I'm practising with realistic user tickets, like the ones I could face on the job. This matters to me because I don't have IT work experience yet. It lets me practise troubleshooting, talking to users and documenting my work before my first day. My goal is around 200 tickets over 30–50 hours, with the harder ones documented from start to finish. It's practice, not real work experience, but I want to start my first job as prepared and confident as I can.
 
-| Problem | Cause | Fix |
-|---|---|---|
-| No connection | Set 10.10.10.1 with no gateway while VirtualBox NAT used 10.0.2.x | Used an address and gateway in the right network |
-| No internet | DNS pointed to 127.0.0.1 before the DNS role was installed | Used 1.1.1.1 for now |
+If you took time from your day to read my CV and open this project, thank you. Getting into IT hasn't been easy, and some things take me a few tries, but I don't give up. Building a career in this field is my goal, and I'm serious about it. If you give me a chance, even a small one, I'll show up, work relentlessly, dedicate myself to improving every day, without excuses, and do everything I can to exceed your expectations. Thanks again, and enjoy exploring my lab!
+  
+**Jump to:** [Proof it works](#proof-it-works) · [Problems I solved](#problems-i-solved) · [How I built it](#how-i-built-it) · [What's next](#whats-next)
 
+## What I practised, in helpdesk terms
 
+| When a user says... | What I did in my lab |
+|---|---|
+| [**"I forgot my password."**](#a-forgotten-password) | Reset a password in Active Directory, with a forced change at next sign-in |
+| [**"My PC won't join the domain."**](#7-adding-a-windows-11-client) | Fixed it by checking the network, DNS and whether the server was on |
+| [**"I can't open this folder."**](#8-file-shares-and-permissions) | Set up share and NTFS permissions, inheritance and Deny |
+| [**"Where's my shared drive?"**](#proof-it-works) | Mapped a network drive for users with Group Policy |
+| [**"Control Panel says it's blocked."**](#proof-it-works) | Blocked it for normal users with Group Policy, but left it open for IT |
+| [**"We need accounts for new people."**](#5-adding-300-users-with-powershell) | Added 300 users to the right OUs and groups with PowerShell (AI wrote the scripts) |
 
-<img width="1019" height="717" alt="{F5C43E50-C62A-41B1-9B6A-246D01BBC4C2}" src="https://github.com/user-attachments/assets/920431b7-f8ec-4e66-9f70-b8420df68911" />
+## Proof it works
 
+I signed in on a Windows 11 PC as different users to check my settings. Click any screenshot to see it full size.
 
-<img width="1031" height="767" alt="{5D0CBCF3-54D3-4297-84C4-8CFD52194556}" src="https://github.com/user-attachments/assets/a97c8dc9-8e6e-43c4-8dbc-ceb76b2b386b" />
+**Same policy, different result.** Control Panel is blocked for normal users, but IT can still open it.
 
-promoting domain controler...
+| Finance (`ana.fonseca`): blocked ✅ | IT (`joao.pinto`): opens ✅ |
+|:---:|:---:|
+| <img width="380" alt="Control Panel blocked for ana.fonseca with a restrictions message" src="https://github.com/user-attachments/assets/46c05fbb-296c-47ea-bfef-45176e57ddfa"> | <img width="380" alt="joao.pinto can open Control Panel" src="https://github.com/user-attachments/assets/9502e40f-ed73-4b48-b3a8-1ba97352433d"> |
 
-<img width="1030" height="759" alt="{0BB9ABE1-FDCB-479C-9EB3-D3641CF9229D}" src="https://github.com/user-attachments/assets/b43e978c-3bf1-4e81-a6ca-06d0831a83a3" />
-Now when i log into the server it should the domain name /adminstrator which it does. 
-This concludes the basic ground work for the windows server for this Active Directory.
+**Same drive, different access.** Group Policy adds the S: drive for both users, but EU HR isn't allowed in.
 
-Let's start this off with a basic setup of the active directory. Next i configured the respective departments, servers,locations and Organizations units. In this project, they are named 
+| IT (`joao.pinto`): drive appears ✅ | HR (`carla.sousa`): access denied ✅ |
+|:---:|:---:|
+| <img width="380" alt="gpupdate succeeds and the Shared (S:) drive appears for joao.pinto" src="https://github.com/user-attachments/assets/3506b1f2-6a2f-4faa-9779-3ae01dcb855a"> | <img width="380" alt="carla.sousa gets access denied on the shared drive" src="https://github.com/user-attachments/assets/cb9b770a-d054-4e33-a005-d193dfc0397b"> |
 
-## 2. Basic AD setup
+<sub>Where you see a command window, I ran `whoami` to show who's signed in. In the drive test, I also ran `gpupdate /force` for `joao.pinto` to get the latest policies.</sub>
 
-**Before:** default domain, only the built-in containers.
-<img width="1028" height="735" alt="ad-before png" src="https://github.com/user-attachments/assets/7d73d8df-f18d-4161-9c05-a2098c277d94" />
-**After:** regional OUs for Europe and USA, each with desktops, laptops and seven departments.
+I also tested [joining the PC to my domain](#7-adding-a-windows-11-client) and [a forced password change](#a-forgotten-password).
 
-**Result:** I created two regional OUs, Europe and USA. Each has separate OUs for desktops, laptops and users, and the users are split into seven departments (Sales, Support, Operations, Finance, Marketing, HR and IT). Servers have their own OU, split by region. This lets me apply policies to a whole region, one department, or only the laptops.
-<img width="1038" height="771" alt="ad-AFTER png (2)" src="https://github.com/user-attachments/assets/dab3da73-def5-4b08-9da9-a6320ed3ab1e" />
+## Problems I solved
 
+Not everything worked the first time, and these taught me the most:
 
-**Troubleshooting:**
+- **My PC couldn't find the domain controller.** I've been studying Microsoft 365 basics, where devices connect over the internet, and it totally escaped me that my two VMs needed to be on the same network. After that, I still had to point the PC's DNS at my server, and remember to turn the server on. Well, I won't forget that again! → [Step 7](#7-adding-a-windows-11-client)
+- **My password policy didn't apply.** The built-in Default Domain Policy was above mine in the link order, so it won. I moved mine to the top and it worked. → [Step 6](#6-group-policy)
+- **I couldn't delete an OU I'd named wrong.** New OUs are protected from accidental deletion, so I had to turn that protection off first. → [Step 2](#2-organising-active-directory)
+- **My server had no connection and no internet.** One cause was an IP address from the wrong network. Another was pointing the server's DNS at itself before the DNS role was installed. → [Step 1](#1-server-setup)
 
-| Problem | Cause | Fix |
-|---|---|---|
-| I created an OU with the wrong name and couldn't delete it | New OUs are protected from accidental deletion by default | Turned on View > Advanced Features, opened the OU's Properties > Object tab, unticked "Protect object from accidental deletion", then deleted it. Kept this setting enabled by default to all the OUs that i wanted to keep.
+## How I built it
 
-
-## 3. Security groups
-
-**What I did:** Created one global security group for each department in each region, 14 in total, inside the department's own OU. For example, GG-Finance-EU is in Finance-EU.
-
-**Why:** Permissions are given to groups, not to individual people. This way, when new users join or someone moves within the company, I can simply move them between groups instead of changing the folder permissions for each user.
-
-**Result:** A search for "GG-" returns 14 groups.
-
-**Next:** The groups are empty for now. I'll add the users and give the groups access to the shared folders in a later step. For now I'm laying the groundwork for the company.
-
-<img width="1024" height="773" alt="SecurityGroups-AD png" src="https://github.com/user-attachments/assets/b1c28b14-c517-48ae-80a6-a3ede2989035" />
-
-
-## 4. Distribution groups
-
-**What I did:** Next to the security groups, I made 14 distribution groups, one for each department in each region. For example, DL-Finance-USA sits in Finance-USA.
-
-**Why:** A distribution group is basically an email list. Send one message to it and everyone in the group gets it. It can't give anyone access to a folder, which is why I keep it separate from the security groups.
-
-**Result:** 14 distribution groups, one next to each security group. A search for "DL" returns all 14, and the second picture shows both kinds in the same OU: GG-Finance-USA is the security group and DL-Finance-USA is the distribution group.
-
-**Next:** These groups only hold the list for now. They'll start sending mail once I add a mail server like Exchange or Microsoft 365. This is planned for my 365 lab later.
-
-<img width="1035" height="778" alt="Distrib-list-14 PNG" src="https://github.com/user-attachments/assets/ef5d371e-0654-4130-83db-39a6050ab846" />
+<img width="1600" height="960" alt="lab-network" src="https://github.com/user-attachments/assets/0693a0b0-307e-48d8-bf19-0fd764a11308" />
 
 
-<img width="1029" height="778" alt="Distribuition groups png" src="https://github.com/user-attachments/assets/73a1f90b-e9c6-4305-9c98-491aef74a952" />
+- **Domain:** `OleksiyKostenko.local`. I used my own name on purpose, so it's clear this lab is my work.
+- **Users:** 300 made-up employees in 2 regions and 7 departments, added with PowerShell and CSV files. AI helped me with this because I'm still developing my PowerShell skills, and I won't claim to know something I don't.
+- **Groups:** 14 security groups and 14 distribution groups
+- **Tools:** VirtualBox, Windows Server 2025, Windows 11 Enterprise, PowerShell
 
+Each step starts with a short summary. Click any ▸ line to see the details and screenshots.
 
-## 5. Importing 300 users
+### 1. Server setup
 
-**What I did:** I needed a lot of users, and typing 300 by hand wasn't realistic. So I used AI to help me write two PowerShell scripts: one makes a list of 300 made-up employees, and the other imports them into Active Directory. I ran a dry run first with -WhatIf to see what it would do, then the real import. Each user lands in the OU for their region and department, and gets added to that department's security group.
+I set up a Windows Server 2025 virtual machine, named it **DC01**, gave it a fixed IP address and made it the domain controller for my new domain.
 
-**Why:** Doing 300 accounts by hand would take hours, and I'd probably make typos. A script does it the same way every time, and the dry run lets me check before anything changes.
+<details>
+<summary><b>Details:</b> why it matters, what went wrong, and 3 screenshots</summary>
 
-**Result:** 180 users in Europe and 120 in the USA, each in the right department OU. Everyone has a temporary password and has to change it the first time they sign in.
+I also set the correct time zone, then installed Active Directory Domain Services and DNS.
 
-<img width="1021" height="764" alt="PowershellUsercreation" src="https://github.com/user-attachments/assets/4e200c6d-da73-47ff-8d7f-9a3d8bf820f8" />
+**Why:** Computers rely on the domain controller for DNS and sign-in, so its address must not change. The clock matters too: Kerberos, which handles domain sign-ins, rejects them if the time is too far off.
 
-(picture: the -WhatIf output)
-<img width="1025" height="760" alt="PowerShellSuccess" src="https://github.com/user-attachments/assets/155668c3-9fe8-409d-946e-a8a292c6ff2b" />
-
-(picture: Operations-USA with its 24 users and two groups)
-<img width="1021" height="211" alt="ConfirmationPSworked" src="https://github.com/user-attachments/assets/8cb80e33-d44b-4717-b632-ddcb93940752" />
-
-
-## 6. Creating Group Policies (GPOs)
-
-I'm creating several policies, linking each one to the OU where it should apply. Once the client PC joins the domain (step 7), I'll test each one from the client and add the screenshots here.
-
-### 6.1 Domain password policy
-
-**What I did:** I created a GPO called Password Policy and linked it to the domain. It sets a minimum of 12 characters, complexity on, 15 old passwords remembered, a 90-day maximum age and a 1-day minimum age.
-
-**Why:** Password rules only work when they're set at the domain level, so I linked this one to the domain itself and not to an OU. I picked 90 days and 1 day so users aren't forced to change their password all the time, but can change it if they need to.
-
-**Result:** Local Security Policy on the DC shows my values.
-<img width="1015" height="472" alt="{CEAD0D1D-82D0-4BDE-8451-AC3BF26FD41F}" src="https://github.com/user-attachments/assets/2e0365d9-9304-4dcf-a690-208490506c49" />
-
-
-**Troubleshooting:**
-<img width="1032" height="777" alt="PasswordpolicyLink" src="https://github.com/user-attachments/assets/d747e58f-c783-44dc-ac49-73c56d31627b" />
+**Result:** `ipconfig /all` showed the name DC01, DHCP turned off and the static address. After the server became a domain controller, I signed in as `OLEKSIYKOSTENKO\Administrator`.
 
 | Problem | Cause | Fix |
 |---|---|---|
-| My password policy didn't apply. Local Security Policy still showed 7 characters and 42 days | The built-in Default Domain Policy was Link Order 1, so it won over mine | Moved my Password Policy to Link Order 1, ran gpupdate /force, and checked again |
+| No connection | I set 10.10.10.1 with no gateway, but VirtualBox NAT uses 10.0.2.x | Used an address and gateway from the right network |
+| No internet | I pointed DNS to 127.0.0.1 before the DNS role was installed | Used 1.1.1.1 for the time being |
 
+The static IP, checked with `ipconfig /all`:
 
+<img width="750" alt="ipconfig on DC01 showing the static IP address" src="https://github.com/user-attachments/assets/920431b7-f8ec-4e66-9f70-b8420df68911">
 
+Installing Active Directory Domain Services and DNS:
 
+<img width="750" alt="AD DS and DNS roles installed on DC01" src="https://github.com/user-attachments/assets/a97c8dc9-8e6e-43c4-8dbc-ceb76b2b386b">
 
+Creating the new domain:
 
-### 6.2 Screen lock policy
+<img width="750" alt="Creating a new forest called OleksiyKostenko.local" src="https://github.com/user-attachments/assets/b43e978c-3bf1-4e81-a6ca-06d0831a83a3">
 
-**What I did:** I created a GPO called Screen Lockout and linked it to Users-EU and Users-USA. It turns on the blank screen saver, locks the screen after 10 minutes (600 seconds) of no use, and asks for the user's password to unlock it.
+</details>
 
-**Why:** If someone leaves their desk, nobody else can sit down and use their account. I linked it to the user OUs and not the whole domain, so it doesn't lock the server administrator out of the domain controller every ten minutes.
+### 2. Organising Active Directory
 
-**Linked to:** Users-EU and Users-USA.
+I organised the domain like a company with staff in **Europe** and the **USA**. Each region has organisational units (OUs) for desktops, laptops and users, with the users split into 7 departments.
 
-**Result:** In the editor, the four settings show as Enabled.
+<details>
+<summary><b>Details:</b> before and after, and the OU I couldn't delete</summary>
 
-**Test:** This one is hard to show in a screenshot, since a picture can't prove the screen locked after 600 seconds (10 minutes) of no activity. I tested it, and it works.
+The departments are Sales, Support, Operations, Finance, Marketing, HR and IT. Servers have their own OU, also split by region.
 
-<img width="1029" height="771" alt="screenlockoutpolicy" src="https://github.com/user-attachments/assets/be78ff6e-48fa-49c7-913c-eb284267d1d7" />
+**Why:** This lets me apply a policy to a whole region, one department, or only the laptops.
 
-### 6.3 Block Control Panel
+| Before | After |
+|:---:|:---:|
+| <img width="380" alt="Active Directory before, with only the built-in containers" src="https://github.com/user-attachments/assets/7d73d8df-f18d-4161-9c05-a2098c277d94"> | <img width="380" alt="Active Directory after, with Europe, USA and Servers OUs" src="https://github.com/user-attachments/assets/dab3da73-def5-4b08-9da9-a6320ed3ab1e"> |
 
-**What I did:** I created a GPO called Control Panel Block and linked it to Users-EU and Users-USA. It turns on "Prohibit access to Control Panel and PC settings", so users can't open Control Panel or the Settings app.
+| Problem | Cause | Fix |
+|---|---|---|
+| I created an OU with the wrong name and couldn't delete it | New OUs are protected from accidental deletion by default | Turned on View > Advanced Features, opened the OU's Properties > Object tab, unticked "Protect object from accidental deletion", then deleted it. I left the protection on for the OUs I wanted to keep. |
 
-**Why:** Most users never need to change system settings. When someone changes the wrong thing, like the network settings, it turns into a helpdesk ticket. Blocking it means fewer tickets and fewer accidents.
+</details>
 
-**Linked to:** Users-EU and Users-USA, so it covers every department.
+### 3. Security groups
 
-**Result:** In the editor the setting shows as Enabled, and the policy appears under both user OUs.
-<img width="1034" height="780" alt="Control Pannel block but it can use it" src="https://github.com/user-attachments/assets/eaaee1fe-be55-43b1-91eb-86be819072c3" />
+I made a security group for each department in each region, 14 in total, like `GG-Finance-EU`. Permissions go to groups instead of single people, so when someone joins or changes team, I just change their groups.
 
-**Excluding IT:** IT staff still need Control Panel for their work. So I used the Delegation tab to deny this policy to the groups GG-IT-EU and GG-IT-USA. Everyone else is blocked, and IT is left out.
-<img width="1034" height="780" alt="Control Pannel block but it can use it" src="https://github.com/user-attachments/assets/f0c6c8e4-bb22-4344-9d80-0fc355eb2adf" />
+<details>
+<summary><b>Details:</b> the 14 security groups</summary>
 
-**Test from the client:** I signed in as ana.fonseca, a Finance user, and tried to open Control Panel. It was blocked with a restrictions message, so the policy works.
-<img width="640" height="214" alt="{09A4E388-AE2D-486E-BD66-1767B3E07FA5}" src="https://github.com/user-attachments/assets/46c05fbb-296c-47ea-bfef-45176e57ddfa" />
+They're global groups, and each one sits in its department's OU. The import script in step 5 adds each user to their department's group.
 
-**Test from the client:** I signed in as Joao.Pinto, a IT user, and tried the same as before, opening the control pannel, and as you can see we created a delegation where that policy doesn't apply to this OU. 
-<img width="948" height="657" alt="{7D56ED4B-F0BF-47CB-B5D3-0DBB1FF86BCF}" src="https://github.com/user-attachments/assets/9502e40f-ed73-4b48-b3a8-1ba97352433d" />
+<img width="750" alt="Search for GG showing 14 security groups" src="https://github.com/user-attachments/assets/b1c28b14-c517-48ae-80a6-a3ede2989035">
 
+</details>
 
-### 6.4 Block USB storage
+### 4. Distribution groups
 
-**What I did:** I created a GPO called Block USB storage and linked it to Users-EU and Users-USA. It uses the user setting "All Removable Storage classes: Deny all access", so no one can use USB sticks or other removable drives.
+I also made 14 distribution groups, which are basically email lists, like `DL-Finance-USA` (DL for distribution list). They can't give anyone access to a folder, so I keep them separate from the security groups.
 
-**Why:** A USB stick is an easy way for company data to leave the building, and an easy way for malware to come in. Blocking it for all users is a simple rule that's easy to explain and check. I used a user policy so it follows the person to any PC they sign in on.
+<details>
+<summary><b>Details:</b> 2 screenshots</summary>
 
-**Linked to:** Users-EU and Users-USA.
+I haven't set up email yet, so these can't send anything. That's for a Microsoft 365 lab later.
 
-**Result:** In the editor the setting shows as Enabled.
+<img width="750" alt="Search for DL showing 14 distribution groups" src="https://github.com/user-attachments/assets/ef5d371e-0654-4130-83db-39a6050ab846">
 
-<img width="1032" height="770" alt="USBstoragePolicy" src="https://github.com/user-attachments/assets/ad495ddf-9489-4b59-a2d4-2dd908cad264" />
+Both types side by side in Finance-USA:
 
-**Test:** This one is hard to show reliably with screenshots, so there's no test picture here. The screenshot above shows how the policy is set up.
+<img width="750" alt="Finance-USA with its security group and distribution group" src="https://github.com/user-attachments/assets/73a1f90b-e9c6-4305-9c98-491aef74a952">
 
-### 6.5 Windows Update
+</details>
 
-**What I did:** I created a GPO called Windows Updates and linked it to Europe and USA, so it flows down to the desktop and laptop OUs in each region. It uses "Configure Automatic Updates", so updates download automatically and install at a set time (03:00) local time of each department so it doesn't interfere with working hours.
+### 5. Adding 300 users with PowerShell
 
-**Why:** Unpatched PCs are one of the easiest ways in for attackers. A policy makes sure updates happen without users having to do anything.
+Typing 300 users by hand wasn't realistic, so I used AI to write two PowerShell scripts. One makes a list of made-up employees, and the other adds them to the right OU and group. I did a dry run first, to check everything before anything changed.
 
-**Result:** In the editor the setting shows as Enabled.
+<details>
+<summary><b>Details:</b> the results and 3 screenshots</summary>
 
-<img width="1035" height="776" alt="windowsupdatepolicy" src="https://github.com/user-attachments/assets/2e273ec5-da3a-4004-9788-8db189e282ab" />
+The dry run uses `-WhatIf`, which shows what would happen without changing anything. Each new user gets a temporary password that must be changed at first sign-in.
 
-**Test:** Updates install on a schedule, so this is hard to show reliably with screenshots. The screenshot above shows how the policy is set up.
+**Why:** Doing it by hand would take hours, and I'd probably make typos. A script does it the same way every time.
 
-## 7. Adding a Windows 11 client to the domain
+**Result:** I checked the numbers with PowerShell: 180 users in Europe, 120 in the USA, and 24 members in `GG-Operations-USA`.
 
-**What I did:** I created a Windows 11 Enterprise virtual machine to act as a user's work PC, and tried to join it to my domain.
+<img width="750" alt="User counts of 180, 120 and 24" src="https://github.com/user-attachments/assets/8cb80e33-d44b-4717-b632-ddcb93940752">
 
-**Why:** So far I'd set everything up from the server. With a client PC, I can see what a real user would see and test my policies.
+The dry run with `-WhatIf`:
 
-**The problem:** The PC said the domain controller could not be contacted. This was mostly an oversight on my part. I've been studying M365 basics, where devices connect over the internet, and it totally escaped me that my two VMs needed to be on the same network. Well, I won't forget that again!
+<img width="750" alt="PowerShell dry run with WhatIf" src="https://github.com/user-attachments/assets/4e200c6d-da73-47ff-8d7f-9a3d8bf820f8">
 
-<img width="844" height="479" alt="error joining the domain" src="https://github.com/user-attachments/assets/a7c10bee-ff4c-4e44-a80a-8a51a5c4c37c" />
+Starting the real import (the temporary password is hidden):
 
-**The fix:** My two virtual machines couldn't see each other, so I moved both to the same virtual network (NatNetwork). Then I set the client's DNS to the server's IP address (10.0.2.10) and made sure the server was turned on. My domain is private, so only my server knows where to find it.
-<img width="1920" height="249" alt="creating a virtual network" src="https://github.com/user-attachments/assets/9237b403-e0ad-47e0-bb8f-9b1237701cad" />
+<img width="750" alt="Starting the real import with the password hidden" src="https://github.com/user-attachments/assets/155668c3-9fe8-409d-946e-a8a292c6ff2b">
 
-**Result:** The client found the domain and asked for a username and password to join it.
-<img width="982" height="679" alt="Successfully joined domain" src="https://github.com/user-attachments/assets/ef3ae416-c55b-42db-b91b-5bb341ff31cf" />
+</details>
 
-<img width="1023" height="769" alt="Password policy working" src="https://github.com/user-attachments/assets/83ed15bb-131d-4086-9eaf-98344d8e64b1" />
+### 6. Group Policy
 
-**Password reset:** The PC joined the domain, but when I went to sign in as ana.fonseca, I had forgotten the password. That gave me a chance to practise a real helpdesk task. I reset it in Active Directory and ticked "User must change password at next logon". When changing it, I tried a short password first, and it was rejected. A password that met my rules worked, which shows my password policy applies to domain users.
-<img width="598" height="697" alt="passwrodpolicyworkinV1" src="https://github.com/user-attachments/assets/a1c4868e-7c2d-4ceb-9700-cb8d92fa1a39" />
+Group Policy lets me manage settings for users and computers from one place. I made 6 policies. Five are below, and the sixth, a mapped network drive, is in [step 8](#8-file-shares-and-permissions).
 
-**Step 8:** Setting up an Shared file.
+| Policy | What it does | Applies to |
+|---|---|---|
+| Password policy | At least 12 characters, with complexity | Whole domain |
+| Screen lock | Locks the screen after 10 minutes | EU and USA users |
+| Block Control Panel | Blocks Control Panel, except for IT | EU and USA users |
+| Block USB storage | Blocks USB sticks and other removable drives | EU and USA users |
+| Windows Update | Installs updates at 03:00 | Europe and USA |
 
-**What I did:** On the server, I created a folder called "SharedFolder" and shared it over the network. In the share permissions, I gave Everyone read access, then denied access to one group, GG-HR-EU.
-<img width="816" height="535" alt="{D9C3FAB3-3DBD-405E-898D-176723254291}" src="https://github.com/user-attachments/assets/760ba28a-c81a-4f46-97e9-f7c3cb6077d0" />
+<details>
+<summary><b>Password policy:</b> and why mine didn't work at first</summary>
 
-**Why:** Since this is a home lab, and my goal is to show whoever is reading this that I can do the job, I kept it simple: create a shared folder and set who can and can't access it. Using a group means I don't have to set permissions user by user. Anyone added to GG-HR-EU gets blocked too, from their next sign-in.
+I created a GPO called "Password Policy" and linked it to the domain. It requires at least 12 characters with complexity on, remembers the last 15 passwords, and sets a maximum age of 90 days and a minimum age of 1 day.
 
-**Result:** The folder is shared, and GG-HR-EU is denied. Deny wins over Allow here, so its members can't get in over the network.
-<img width="891" height="542" alt="{604B15C8-FCDC-4A9D-ADC5-D14C488589FE}" src="https://github.com/user-attachments/assets/b57b5d71-65c3-4a3d-bdaa-221786f90a9e" />
+**Why:** With Group Policy, password rules for domain users only work at the domain level, so I linked it there and not to an OU. The 1-day minimum stops someone changing their password several times in a row to get back to an old one.
 
+| Problem | Cause | Fix |
+|---|---|---|
+| My policy didn't apply. Local Security Policy still showed 7 characters and 42 days | The built-in Default Domain Policy was at Link Order 1, so it won over mine | Moved my policy to Link Order 1, ran `gpupdate /force` and checked again |
 
-**Test from the client:** Next, I tested whether a user could connect to the folder. I signed in on the Windows 11 PC as joao.pinto, who isn't in the blocked group. The whoami command shows who's signed in, and SharedFolder shows up as network drive S: (\\DC01\SharedFolder).
-<img width="895" height="633" alt="{EC826BE0-7757-4E68-A62E-4DF96BB79A37}" src="https://github.com/user-attachments/assets/dd7536ca-1692-4f61-8c1c-5cef5d0a96f3" />
+After that, my policy was at Link Order 1, and Local Security Policy on the domain controller showed my values:
 
-### Mapping the drive with a Group Policy
+<img width="750" alt="Password Policy at Link Order 1 and its values in Local Security Policy" src="https://github.com/user-attachments/assets/d747e58f-c783-44dc-ac49-73c56d31627b">
 
-**What I did:** I created a GPO called "Mapped Drives". I set it up under User Configuration > Preferences > Windows Settings > Drive Maps, with these settings:
+The settings inside the policy:
+
+<img width="750" alt="Password Policy settings in the Group Policy editor" src="https://github.com/user-attachments/assets/2e0365d9-9304-4dcf-a690-208490506c49">
+
+**Something I learned:** Newer guidance from Microsoft and NIST moves away from forcing regular password changes. I used 90 days here to practise setting it up.
+
+</details>
+
+<details>
+<summary><b>Screen lock:</b> locks the screen after 10 minutes</summary>
+
+I made a GPO called "Screen Lockout" and linked it to Users-EU and Users-USA. After 10 minutes (600 seconds) without activity, the blank screen saver starts, and the user needs their password to get back in.
+
+**Why:** If someone leaves their desk, nobody else can use their account. I linked it to the user OUs because it's meant for staff accounts. Admin accounts and servers should lock too, which I would set up separately.
+
+I tested it and it works. A screenshot can't really prove the 10-minute wait, so here are the settings:
+
+<img width="750" alt="Screen Lockout linked to both user OUs with four settings enabled" src="https://github.com/user-attachments/assets/be78ff6e-48fa-49c7-913c-eb284267d1d7">
+
+</details>
+
+<details>
+<summary><b>Block Control Panel:</b> and how I left IT out</summary>
+
+I made a GPO called "Control Panel Block", turned on "Prohibit access to Control Panel and PC settings", and linked it to Users-EU and Users-USA.
+
+**Why:** Most users don't need to change system settings. When someone changes the wrong thing, like network settings, it turns into a helpdesk ticket.
+
+**Leaving IT out:** IT staff still need Control Panel for their work. So on the Delegation tab, I set Deny on "Apply group policy" for the groups `GG-IT-EU` and `GG-IT-USA`.
+
+You can see it tested with two users in [Proof it works](#proof-it-works). This is the policy setting:
+
+<img width="750" alt="Control Panel block setting enabled" src="https://github.com/user-attachments/assets/eaaee1fe-be55-43b1-91eb-86be819072c3">
+
+</details>
+
+<details>
+<summary><b>Block USB storage:</b> blocks USB sticks and removable drives</summary>
+
+I made a GPO called "Block USB storage" and linked it to Users-EU and Users-USA. It uses "All Removable Storage classes: Deny all access" to block USB sticks and other removable drives.
+
+**Why:** A USB stick is an easy way for company data to walk out of the building, and for malware to get in. It's a user policy, so it follows the person to whichever PC they sign in on.
+
+This one is hard to show reliably in screenshots, so here's how it's set up:
+
+<img width="750" alt="Removable storage settings in the Block USB storage policy" src="https://github.com/user-attachments/assets/ad495ddf-9489-4b59-a2d4-2dd908cad264">
+
+</details>
+
+<details>
+<summary><b>Windows Update:</b> installs updates at night</summary>
+
+I made a GPO called "Windows Updates" and linked it to Europe and USA, so it flows down to the desktop and laptop OUs. With "Configure Automatic Updates", updates download automatically and install at 03:00 (each PC's local time), outside working hours.
+
+**Why:** PCs without updates are an easy target for attackers, and users shouldn't have to remember to update.
+
+Updates run on a schedule, so this is hard to show reliably in screenshots. Here's how it's set up:
+
+<img width="750" alt="Configure Automatic Updates enabled" src="https://github.com/user-attachments/assets/2e273ec5-da3a-4004-9788-8db189e282ab">
+
+</details>
+
+### 7. Adding a Windows 11 client
+
+I created a Windows 11 Enterprise virtual machine to act as a user's work PC, and joined it to my domain. Until then I'd done everything from the server, so this was my chance to see what a real user sees.
+
+<details>
+<summary><b>Details:</b> why it didn't join at first, and how I fixed it</summary>
+
+The PC kept saying the domain controller couldn't be contacted.
+
+| Problem | Cause | Fix |
+|---|---|---|
+| Domain join failed: the domain controller couldn't be contacted | My two VMs were on separate NAT networks | Put both on the same VirtualBox NatNetwork |
+| The same error again | The client wasn't using my server for DNS, and the server wasn't turned on | Set the client's DNS to 10.0.2.10 and turned DC01 on |
+
+My domain is private, so public DNS doesn't know it. That's why the client has to ask my server.
+
+| Before: can't contact the domain controller | After: finds the domain and asks for a login |
+|:---:|:---:|
+| <img width="380" alt="Error saying the domain controller could not be contacted" src="https://github.com/user-attachments/assets/a7c10bee-ff4c-4e44-a80a-8a51a5c4c37c"> | <img width="380" alt="Client DNS settings and the domain join sign-in prompt" src="https://github.com/user-attachments/assets/ef3ae416-c55b-42db-b91b-5bb341ff31cf"> |
+
+The NatNetwork in VirtualBox:
+
+<img width="750" alt="NatNetwork in VirtualBox" src="https://github.com/user-attachments/assets/9237b403-e0ad-47e0-bb8f-9b1237701cad">
+
+</details>
+
+#### A forgotten password
+
+After the PC joined the domain, I went to sign in as `ana.fonseca` and realised I had forgotten the password. That gave me a chance to practise one of the most common helpdesk tasks: I reset it in Active Directory and ticked "User must change password at next logon". At the next sign-in, Windows asked for a new password before letting me in.
+
+<details>
+<summary><b>Screenshots:</b> the forced password change</summary>
+
+| Password must be changed | Setting the new password |
+|:---:|:---:|
+| <img width="380" alt="Message that the password must be changed before signing in" src="https://github.com/user-attachments/assets/83ed15bb-131d-4086-9eaf-98344d8e64b1"> | <img width="380" alt="Setting a new password at sign-in" src="https://github.com/user-attachments/assets/a1c4868e-7c2d-4ceb-9700-cb8d92fa1a39"> |
+
+In the second screenshot, "Sign in to: OLEKSIYKOSTENKO" also shows that the PC is part of my domain.
+
+</details>
+
+### 8. File shares and permissions
+
+I made shared folders and controlled who can get in. There are two layers of permissions: **share permissions** apply over the network, and **NTFS permissions** (the Security tab) apply to the files and folders themselves. Over the network both count, and the stricter one wins.
+
+<details>
+<summary><b>A shared folder with one group blocked</b></summary>
+
+I shared a folder called "SharedFolder". In the share permissions, Everyone and Domain Users can read, and I denied access to one group, `GG-HR-EU`.
+
+**Why:** I kept this one simple: share a folder and control who gets in. Using a group means I don't set permissions one user at a time. Anyone added to `GG-HR-EU` gets blocked too, from their next sign-in.
+
+**Result:** Here, Deny wins over Allow, so members of `GG-HR-EU` can't get in over the network.
+
+<img width="750" alt="Share permissions on SharedFolder" src="https://github.com/user-attachments/assets/760ba28a-c81a-4f46-97e9-f7c3cb6077d0">
+
+<img width="750" alt="GG-HR-EU denied in the share permissions" src="https://github.com/user-attachments/assets/b57b5d71-65c3-4a3d-bdaa-221786f90a9e">
+
+</details>
+
+<details>
+<summary><b>Mapping the S: drive</b> with Group Policy</summary>
+
+I made a GPO called "Mapped Drives" and set up the drive under User Configuration > Preferences > Windows Settings > Drive Maps:
 
 | Setting | Value | What it means |
 |---|---|---|
-| Action | Update | Creates the drive if it's missing, or updates it if it already exists |
-| Location | \\DC01\SharedFolder | The shared folder on my server |
+| Action | Update | Creates the drive if it's missing, or updates it if it's already there |
+| Location | `\\DC01\SharedFolder` | The shared folder on my server |
 | Drive letter | S: | The letter set for the drive |
 | Label | Shared | The name I gave the drive |
 
-**Why:** Users shouldn't have to type the folder path or set up the drive themselves. The GPO does it for them when they sign in, and if the path ever changes, I only need to update it in one place.
+**Why:** Users shouldn't have to type the path or set up the drive themselves. And if the path ever changes, I only update it in one place.
 
-**Access:** The GPO only adds the drive. It doesn't give anyone permission. The folder's permissions still decide who can open it, and GG-HR-EU is denied.
+**Good to know:** The GPO only adds the drive. It doesn't give anyone access. The permissions still decide who gets in, as the [drive test](#proof-it-works) shows.
 
-(picture: the S: drive settings in the GPO editor)
-<img width="1031" height="710" alt="{47A76BC0-B4FD-4CD2-9CF0-7929D36E7CCC}" src="https://github.com/user-attachments/assets/2dac1a8a-d032-46ce-85e4-402d7496be5d" />
+<img width="750" alt="Drive Maps settings in the Mapped Drives policy" src="https://github.com/user-attachments/assets/2dac1a8a-d032-46ce-85e4-402d7496be5d">
 
-**Test from the client:** I signed in on the Windows 11 PC as joao.pinto and ran whoami to confirm which user was signed in. Then I ran gpupdate /force to get the latest policies, and opened This PC.
+</details>
 
-**Result:** The policy update completed successfully, and the drive shows as Shared (S:), with the label I set in my GPO.
-<img width="967" height="687" alt="{6F20ED66-6A1E-4C94-AB54-95D3C13CCE7A}" src="https://github.com/user-attachments/assets/3506b1f2-6a2f-4faa-9779-3ae01dcb855a" />
+<details>
+<summary><b>Folder inheritance:</b> giving one project folder to one team</summary>
 
-**Test with a blocked user:** Next, I signed in as carla.sousa, an HR-EU user, and tried to open the Shared (S:) drive.
+I created a folder called "Common" and shared it as `\\DC01\Common`, with subfolders like "Events" and "Project".
 
-**Result:** Access was denied. carla.sousa still sees the drive, but can't open it. This shows that the GPO only adds the drive, while the folder's permissions decide who can get in. The deny in OU GG-HR-EU works.
-<img width="1009" height="720" alt="{09E1EFC1-6F1C-4DDE-BDB9-95D01B654D4E}" src="https://github.com/user-attachments/assets/cb9b770a-d054-4e33-a005-d193dfc0397b" />
+**Why:** I imagined one team working on a project. By default, a new folder inherits its permissions from the folder above it, and later changes to that parent flow down too. I didn't want Everyone's access to "Common" to carry over to "Project".
 
+**What I did:** On "Project", I disabled inheritance, removed Everyone and gave the Operations team, `GG-Operations-USA`, Full control.
 
-## 9. A common share and folder inheritance
+**Result:** The "Inherited from" column showed "None", and SYSTEM and the administrators kept their access.
 
-**What I did:** On the server, I created a folder called "Common" and shared it as \\\\DC01\\Common, with subfolders inside for different uses, including "Events" and "Project". On "Common", Everyone has read access. On "Project", I disabled inheritance, removed Everyone and gave the group GG-Operations-USA Full control.
+| Inheritance disabled | Final permissions on "Project" |
+|:---:|:---:|
+| <img width="380" alt="Project with inheritance disabled" src="https://github.com/user-attachments/assets/44f24d83-9e29-4f01-8bd3-2bc2d64f3652"> | <img width="380" alt="Final permissions on Project" src="https://github.com/user-attachments/assets/a2082521-ac57-4453-8846-8cde027a2e89"> |
 
-**Why:** I simulated a company where a team has to work on a project. By default, a new folder inherits its permissions from its parent folder. I created three folders inside "Common", which is the parent of "Project", the one I'm focusing on. I started by sharing "Common" normally. Then I disabled inheritance on "Project" and removed the "Users" group, so regular users wouldn't get access through it. Last, I added the group that would be working on the project, Operations (GG-Operations-USA), using NTFS permissions.
+Sharing "Common":
 
- Common is shared
-<img width="944" height="715" alt="ProjectCommonFolderSpecificPermissionsSharePart" src="https://github.com/user-attachments/assets/60ea1ae3-bd55-4fdc-a966-36434f908597" />
+<img width="750" alt="The Common folder is shared" src="https://github.com/user-attachments/assets/60ea1ae3-bd55-4fdc-a966-36434f908597">
 
+</details>
 
-Permissions on Common
+<details>
+<summary><b>Explicit deny:</b> stopping one group from reading a folder</summary>
 
-**Why:** By default, a subfolder copies the permissions of the folder above it. That's called inheritance. It saves time, but sometimes one folder needs different rules. Disabling inheritance on "Project" stops it copying from "Common", so I can set its own permissions.<img width="967" height="716" alt="EveryoneHasAccessToIt" src="https://github.com/user-attachments/assets/30f325c8-fdef-49cc-bd63-27d806323deb" />
+I made a shared folder called "Project2" and used an explicit deny on one group, `GG-Sales-USA`.
 
+**Why:** I wanted to learn how to stop one group from reading a folder while Everyone is still allowed on it.
 
- Project with inheritance disabled
-<img width="865" height="697" alt="SamePermissionsAsParents(folderinsidecommon)" src="https://github.com/user-attachments/assets/89e24f2c-de5e-49c5-a82d-77c9bceaf6c8" />
+| 1. Share permissions: Everyone has Full Control | 2. First, `GG-Sales-USA` can read |
+|:---:|:---:|
+| <img width="380" alt="Share permissions on Project2" src="https://github.com/user-attachments/assets/a60e3e4d-4767-4caa-8916-544e15e545ac"> | <img width="380" alt="GG-Sales-USA with read access" src="https://github.com/user-attachments/assets/1522c189-d17e-4fcd-a87a-945252f47922"> |
+| **3. Then I ticked Deny on Read** | **4. Everyone is still allowed on the Security tab** |
+| <img width="380" alt="GG-Sales-USA with Deny on Read" src="https://github.com/user-attachments/assets/3ba35719-8fb0-4f38-bf47-c2e67af3791b"> | <img width="380" alt="Everyone is still allowed on Project2" src="https://github.com/user-attachments/assets/eaa82a57-ba62-4f8a-802b-d5a35db59d0e"> |
 
-<img width="1040" height="702" alt="removed inheretince" src="https://github.com/user-attachments/assets/44f24d83-9e29-4f01-8bd3-2bc2d64f3652" />
+People in `GG-Sales-USA` are also part of Everyone, which can read and write. But on this folder, **the Deny on Read wins over the Allow**.
 
-**Result:** On "Project", the "Inherited from" column showed "None" after I disabled inheritance, and Everyone was no longer on the list. I then added GG-Operations-USA. SYSTEM and the administrator entries are still there.
+**What I learned:** There are two kinds of deny. An **explicit deny** is when I tick Deny myself, like here. An **implicit deny** is when nothing gives you access, so you're refused by default.
 
-<img width="997" height="700" alt="added Support as the group that will be working with this folder" src="https://github.com/user-attachments/assets/36cbd6c8-cab8-4f14-a3f4-00f5c21a7d31" />
+</details>
 
- Final permissions on Project
-<img width="909" height="617" alt="only the Operations group has access to the project folder now" src="https://github.com/user-attachments/assets/a2082521-ac57-4453-8846-8cde027a2e89" />
+> **Honestly:** inheritance and shares were the hardest part of this lab for me. I went through guides and documentation to get them right. I understand them now, and I'm still practising.
 
-**Comment:** I'll be honest: inheritance and shares are a weak spot of mine, so I had to go through guides and documentation to set this up properly. It's still something I need to actively work on and improve.
+## What's next
 
+**My plan:** After Network+, I'll focus on Security+ and CCNA, improve my PowerShell skills, and build a full network with security features (in progress).
 
-## 10. Explicit deny
+This lab is a work in progress too. In it, I want to:
 
-**What I did:** I made a folder called "Project2", shared it, and set up its permissions. Then I tried out "explicit deny" on one group, GG-Sales-USA.
+- Follow least privilege: give folder access only to the groups that need it, with Modify instead of Full control
+- Add an account lockout policy and practise unlocking accounts
+- Practise the full new starter, mover and leaver process
+- Find a reliable way to show the USB and Windows Update policies working on the client
+- Move the file shares to a separate file server instead of the domain controller
+- Connect the lab to Microsoft Entra ID and try remote access over a VPN
+- Write PowerShell scripts like these myself
 
-**Why:** I wanted to learn how to stop one group from reading a folder, while Everyone is still allowed on it.
-
-**First, I shared the folder.** In the share permissions, I gave Everyone Full Control. I can still limit what people do with the Security tab (NTFS).
-
-<img width="1010" height="708" alt="SettinupShareProject2" src="https://github.com/user-attachments/assets/a60e3e4d-4767-4caa-8916-544e15e545ac" />
-
-**Next, I added the group GG-Sales-USA.** At first, I let them read.
-
-<img width="892" height="633" alt="The child folder inherited from Project2 the permissions" src="https://github.com/user-attachments/assets/dcf174f3-17f5-4374-bffb-d4fe5ca34f9d" />
-
-**Then I changed it to Deny.** I ticked the Deny box next to Read. This is called an explicit deny, because I chose to block it myself.
-
-<img width="719" height="691" alt="Adding groupor user who we want to deny access to the folder" src="https://github.com/user-attachments/assets/1522c189-d17e-4fcd-a87a-945252f47922" />
-
-**Everyone is still allowed.** People in GG-Sales-USA are also part of "Everyone", which can read and write. But on this folder, the Deny on Read wins over the Allow.
-
-<img width="497" height="658" alt="denied" src="https://github.com/user-attachments/assets/3ba35719-8fb0-4f38-bf47-c2e67af3791b" />
-
-**What I learned:** There are two kinds of deny. An **explicit deny** is when I tick Deny myself. An **implicit deny** is when nobody gave you access, so you can't get in.
-
-<img width="509" height="653" alt="everyone else is not affected" src="https://github.com/user-attachments/assets/eaa82a57-ba62-4f8a-802b-d5a35db59d0e" />
-
-
-
-
-
-
-
-
-
-
-
+**Thanks for reading!** I'm still learning, and I'll keep adding to this lab.

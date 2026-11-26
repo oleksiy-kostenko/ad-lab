@@ -251,7 +251,34 @@ I'm creating several policies, linking each one to the OU where it should apply.
 <img width="1009" height="720" alt="{09E1EFC1-6F1C-4DDE-BDB9-95D01B654D4E}" src="https://github.com/user-attachments/assets/cb9b770a-d054-4e33-a005-d193dfc0397b" />
 
 
+## 9. A common share and folder inheritance
 
+**What I did:** On the server, I created a folder called "Common" and shared it as \\\\DC01\\Common, with subfolders inside for different uses, including "Events" and "Project". On "Common", Everyone has read access. On "Project", I disabled inheritance, removed Everyone and gave the group GG-Operations-USA Full control.
+
+**Why:** I simulated a company where a team has to work on a project. By default, a new folder inherits its permissions from its parent folder. I created three folders inside "Common", which is the parent of "Project", the one I'm focusing on. I started by sharing "Common" normally. Then I disabled inheritance on "Project" and removed the "Users" group, so regular users wouldn't get access through it. Last, I added the group that would be working on the project, Operations (GG-Operations-USA), using NTFS permissions.
+
+ Common is shared
+<img width="944" height="715" alt="ProjectCommonFolderSpecificPermissionsSharePart" src="https://github.com/user-attachments/assets/60ea1ae3-bd55-4fdc-a966-36434f908597" />
+
+
+Permissions on Common
+
+**Why:** By default, a subfolder copies the permissions of the folder above it. That's called inheritance. It saves time, but sometimes one folder needs different rules. Disabling inheritance on "Project" stops it copying from "Common", so I can set its own permissions.<img width="967" height="716" alt="EveryoneHasAccessToIt" src="https://github.com/user-attachments/assets/30f325c8-fdef-49cc-bd63-27d806323deb" />
+
+
+ Project with inheritance disabled
+<img width="865" height="697" alt="SamePermissionsAsParents(folderinsidecommon)" src="https://github.com/user-attachments/assets/89e24f2c-de5e-49c5-a82d-77c9bceaf6c8" />
+
+<img width="1040" height="702" alt="removed inheretince" src="https://github.com/user-attachments/assets/44f24d83-9e29-4f01-8bd3-2bc2d64f3652" />
+
+**Result:** On "Project", the "Inherited from" column showed "None" after I disabled inheritance, and Everyone was no longer on the list. I then added GG-Operations-USA. SYSTEM and the administrator entries are still there.
+
+<img width="997" height="700" alt="added Support as the group that will be working with this folder" src="https://github.com/user-attachments/assets/36cbd6c8-cab8-4f14-a3f4-00f5c21a7d31" />
+<img width="909" height="617" alt="only the Operations group has access to the project folder now" src="https://github.com/user-attachments/assets/a2082521-ac57-4453-8846-8cde027a2e89" />
+
+
+
+ Final permissions on Project
 
 
 

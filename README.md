@@ -83,5 +83,95 @@ Let's start this off with a basic setup of the active directory. Next i configur
 <img width="1029" height="778" alt="Distribuition groups png" src="https://github.com/user-attachments/assets/73a1f90b-e9c6-4305-9c98-491aef74a952" />
 
 
+## 5. Importing 300 users
+
+**What I did:** I needed a lot of users, and typing 300 by hand wasn't realistic. So I used AI to help me write two PowerShell scripts: one makes a list of 300 made-up employees, and the other imports them into Active Directory. I ran a dry run first with -WhatIf to see what it would do, then the real import. Each user lands in the OU for their region and department, and gets added to that department's security group.
+
+**Why:** Doing 300 accounts by hand would take hours, and I'd probably make typos. A script does it the same way every time, and the dry run lets me check before anything changes.
+
+**Result:** 180 users in Europe and 120 in the USA, each in the right department OU. Everyone has a temporary password and has to change it the first time they sign in.
+
+<img width="1021" height="764" alt="PowershellUsercreation" src="https://github.com/user-attachments/assets/4e200c6d-da73-47ff-8d7f-9a3d8bf820f8" />
+
+(picture: the -WhatIf output)
+<img width="1025" height="760" alt="PowerShellSuccess" src="https://github.com/user-attachments/assets/155668c3-9fe8-409d-946e-a8a292c6ff2b" />
+
+(picture: Operations-USA with its 24 users and two groups)
+<img width="1021" height="211" alt="ConfirmationPSworked" src="https://github.com/user-attachments/assets/8cb80e33-d44b-4717-b632-ddcb93940752" />
+
+
+## 6. Creating Group Policies (GPOs)
+
+I'm creating several policies, linking each one to the OU where it should apply. Once the client PC joins the domain (step 7), I'll test each one from the client and add the screenshots here.
+
+### 6.1 Domain password policy
+
+**What I did:** I created a GPO called Password Policy and linked it to the domain. It sets a minimum of 12 characters, complexity on, 15 old passwords remembered, a 90-day maximum age and a 1-day minimum age.
+
+**Why:** Password rules only work when they're set at the domain level, so I linked this one to the domain itself and not to an OU. I picked 90 days and 1 day so users aren't forced to change their password all the time, but can change it if they need to.
+
+**Result:** Local Security Policy on the DC shows my values.
+
+**Troubleshooting:**
+
+| Problem | Cause | Fix |
+|---|---|---|
+| My password policy didn't apply. Local Security Policy still showed 7 characters and 42 days | The built-in Default Domain Policy was Link Order 1, so it won over mine | Moved my Password Policy to Link Order 1, ran gpupdate /force, and checked again |
+
+
+<img width="1032" height="777" alt="PasswordpolicyLink" src="https://github.com/user-attachments/assets/ca820682-ae59-425a-ac94-786e292cfaca" />
+
+
+### 6.2 Screen lock policy
+
+**What I did:** I created a GPO called Screen Lockout and linked it to Users-EU and Users-USA. It turns on the blank screen saver, locks the screen after 10 minutes (600 seconds) of no use, and asks for the user's password to unlock it.
+
+**Why:** If someone leaves their desk, nobody else can sit down and use their account. I linked it to the user OUs and not the whole domain, so it doesn't lock the server administrator out of the domain controller every ten minutes.
+
+**Linked to:** Users-EU and Users-USA.
+
+**Result:** In the editor, the four settings show as Enabled.
+
+**Test from the client:** added in step 7.
+
+<img width="1029" height="771" alt="screenlockoutpolicy" src="https://github.com/user-attachments/assets/be78ff6e-48fa-49c7-913c-eb284267d1d7" />
+
+### 6.3 Block Control Panel
+
+**What I did:** I created a GPO called Control Panel Block and linked it to Users-EU and Users-USA. It turns on "Prohibit access to Control Panel and PC settings", so users can't open Control Panel or the Settings app.
+
+**Why:** Most users never need to change system settings. When someone changes the wrong thing, like the network settings, it turns into a helpdesk ticket. Blocking it means fewer tickets and fewer accidents.
+
+**Linked to:** Users-EU and Users-USA, so it covers every department.
+
+**Result:** In the editor the setting shows as Enabled, and the policy appears under both user OUs.
+<img width="1034" height="780" alt="Control Pannel block but it can use it" src="https://github.com/user-attachments/assets/eaaee1fe-be55-43b1-91eb-86be819072c3" />
+
+**Excluding IT:** IT staff still need Control Panel for their work. So I used the Delegation tab to deny this policy to the groups GG-IT-EU and GG-IT-USA. Everyone else is blocked, and IT is left out.
+<img width="1034" height="780" alt="Control Pannel block but it can use it" src="https://github.com/user-attachments/assets/f0c6c8e4-bb22-4344-9d80-0fc355eb2adf" />
+
+
+### 6.4 Block USB storage
+
+**What I did:** I created a GPO called Block USB storage and linked it to Users-EU and Users-USA. It uses the user setting "All Removable Storage classes: Deny all access", so no one can use USB sticks or other removable drives.
+
+**Why:** A USB stick is an easy way for company data to leave the building, and an easy way for malware to come in. Blocking it for all users is a simple rule that's easy to explain and check. I used a user policy so it follows the person to any PC they sign in on.
+
+**Linked to:** Users-EU and Users-USA.
+
+**Result:** In the editor the setting shows as Enabled.
+
+<img width="1032" height="770" alt="USBstoragePolicy" src="https://github.com/user-attachments/assets/ad495ddf-9489-4b59-a2d4-2dd908cad264" />
+
+### 6.5 Windows Update
+
+**What I did:** I created a GPO called Windows Updates and linked it to Europe and USA, so it flows down to the desktop and laptop OUs in each region. It uses "Configure Automatic Updates", so updates download automatically and install at a set time.
+
+**Why:** Unpatched PCs are one of the easiest ways in for attackers. A policy makes sure updates happen without users having to do anything.
+
+**Result:** In the editor the setting shows as Enabled.
+
+<img width="1035" height="776" alt="windowsupdatepolicy" src="https://github.com/user-attachments/assets/2e273ec5-da3a-4004-9788-8db189e282ab" />
+
 
 

@@ -15,6 +15,7 @@ I like learning by doing, so I built this lab to practise what a helpdesk deals 
 - **Practised in this lab:** Active Directory · Group Policy · File permissions · DNS troubleshooting · Windows 11 and Server 2025
 - **A+ knowledge:** TCP/IP and DHCP · VPN · Remote Desktop · Hardware and printers
 - **Currently learning:** Microsoft 365 admin · Entra ID basics
+- **Additional skills:** Ticketing practice (simulator) · Documentation · Using knowledge bases · Clear communication · Friendly, patient and attentive
 
 ### Also working on
 

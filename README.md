@@ -173,9 +173,11 @@ I'm creating several policies, linking each one to the OU where it should apply.
 
 <img width="1032" height="770" alt="USBstoragePolicy" src="https://github.com/user-attachments/assets/ad495ddf-9489-4b59-a2d4-2dd908cad264" />
 
+**Test:** This one is hard to show reliably with screenshots, so there's no test picture here. The screenshot above shows how the policy is set up.
+
 ### 6.5 Windows Update
 
-**What I did:** I created a GPO called Windows Updates and linked it to Europe and USA, so it flows down to the desktop and laptop OUs in each region. It uses "Configure Automatic Updates", so updates download automatically and install at a set time.
+**What I did:** I created a GPO called Windows Updates and linked it to Europe and USA, so it flows down to the desktop and laptop OUs in each region. It uses "Configure Automatic Updates", so updates download automatically and install at a set time (03:00) local time of each department so it doesn't interfere with working hours.
 
 **Why:** Unpatched PCs are one of the easiest ways in for attackers. A policy makes sure updates happen without users having to do anything.
 
@@ -183,6 +185,7 @@ I'm creating several policies, linking each one to the OU where it should apply.
 
 <img width="1035" height="776" alt="windowsupdatepolicy" src="https://github.com/user-attachments/assets/2e273ec5-da3a-4004-9788-8db189e282ab" />
 
+**Test:** Updates install on a schedule, so this is hard to show reliably with screenshots. The screenshot above shows how the policy is set up.
 
 ## 7. Adding a Windows 11 client to the domain
 
@@ -204,6 +207,53 @@ I'm creating several policies, linking each one to the OU where it should apply.
 
 **Password reset:** The PC joined the domain, but when I went to sign in as ana.fonseca, I had forgotten the password. That gave me a chance to practise a real helpdesk task. I reset it in Active Directory and ticked "User must change password at next logon". When changing it, I tried a short password first, and it was rejected. A password that met my rules worked, which shows my password policy applies to domain users.
 <img width="598" height="697" alt="passwrodpolicyworkinV1" src="https://github.com/user-attachments/assets/a1c4868e-7c2d-4ceb-9700-cb8d92fa1a39" />
+
+**Step 8:** Setting up an Shared file.
+
+**What I did:** On the server, I created a folder called "SharedFolder" and shared it over the network. In the share permissions, I gave Everyone read access, then denied access to one group, GG-HR-EU.
+<img width="816" height="535" alt="{D9C3FAB3-3DBD-405E-898D-176723254291}" src="https://github.com/user-attachments/assets/760ba28a-c81a-4f46-97e9-f7c3cb6077d0" />
+
+**Why:** Since this is a home lab, and my goal is to show whoever is reading this that I can do the job, I kept it simple: create a shared folder and set who can and can't access it. Using a group means I don't have to set permissions user by user. Anyone added to GG-HR-EU gets blocked too, from their next sign-in.
+
+**Result:** The folder is shared, and GG-HR-EU is denied. Deny wins over Allow here, so its members can't get in over the network.
+<img width="891" height="542" alt="{604B15C8-FCDC-4A9D-ADC5-D14C488589FE}" src="https://github.com/user-attachments/assets/b57b5d71-65c3-4a3d-bdaa-221786f90a9e" />
+
+
+**Test from the client:** Next, I tested whether a user could connect to the folder. I signed in on the Windows 11 PC as joao.pinto, who isn't in the blocked group. The whoami command shows who's signed in, and SharedFolder shows up as network drive S: (\\DC01\SharedFolder).
+<img width="895" height="633" alt="{EC826BE0-7757-4E68-A62E-4DF96BB79A37}" src="https://github.com/user-attachments/assets/dd7536ca-1692-4f61-8c1c-5cef5d0a96f3" />
+
+### Mapping the drive with a Group Policy
+
+**What I did:** I created a GPO called "Mapped Drives". I set it up under User Configuration > Preferences > Windows Settings > Drive Maps, with these settings:
+
+| Setting | Value | What it means |
+|---|---|---|
+| Action | Update | Creates the drive if it's missing, or updates it if it already exists |
+| Location | \\DC01\SharedFolder | The shared folder on my server |
+| Drive letter | S: | The letter set for the drive |
+| Label | Shared | The name I gave the drive |
+
+**Why:** Users shouldn't have to type the folder path or set up the drive themselves. The GPO does it for them when they sign in, and if the path ever changes, I only need to update it in one place.
+
+**Access:** The GPO only adds the drive. It doesn't give anyone permission. The folder's permissions still decide who can open it, and GG-HR-EU is denied.
+
+(picture: the S: drive settings in the GPO editor)
+<img width="1031" height="710" alt="{47A76BC0-B4FD-4CD2-9CF0-7929D36E7CCC}" src="https://github.com/user-attachments/assets/2dac1a8a-d032-46ce-85e4-402d7496be5d" />
+
+**Test from the client:** I signed in on the Windows 11 PC as joao.pinto and ran whoami to confirm which user was signed in. Then I ran gpupdate /force to get the latest policies, and opened This PC.
+
+**Result:** The policy update completed successfully, and the drive shows as Shared (S:), with the label I set in my GPO.
+<img width="967" height="687" alt="{6F20ED66-6A1E-4C94-AB54-95D3C13CCE7A}" src="https://github.com/user-attachments/assets/3506b1f2-6a2f-4faa-9779-3ae01dcb855a" />
+
+**Test with a blocked user:** Next, I signed in as carla.sousa, an HR-EU user, and tried to open the Shared (S:) drive.
+
+**Result:** Access was denied. carla.sousa still sees the drive, but can't open it. This shows that the GPO only adds the drive, while the folder's permissions decide who can get in. The deny in OU GG-HR-EU works.
+<img width="1009" height="720" alt="{09E1EFC1-6F1C-4DDE-BDB9-95D01B654D4E}" src="https://github.com/user-attachments/assets/cb9b770a-d054-4e33-a005-d193dfc0397b" />
+
+
+
+
+
 
 
 
